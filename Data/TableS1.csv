@@ -1,0 +1,28 @@
+Virus,Abbreviation,Family,Order,Tax_id,Seq_Threshold,Vaccination*,Transmission,Circulation,Treatment,Disease_progression
+Betacoronavirus 1,BCoV1,Coronaviridae,Nidovirales,694003,27000,n,aerosolic,Human,symptomatic,acute
+Chikungunya virus,CHIKV,Togaviridae,Martellivirales,37124,8500,n,vector,Human,symptomatic,acute
+Dengue virus,DENV,Flaviviridae,Amarillovirales,12637,8500,p,vector,Human/ zoonotic,symptomatic,acute
+Zaire ebolavirus,Ebola,Filoviridae,Mononegavirales,186538,17000,p,body fluids,Human/ zoonotic,symptomatic,acute
+Enterovirus A,EVA,Picornaviridae,Picornavirales,138948,5500,n,fecal-oral,Human,symptomatic,acute
+Enterovirus B,EVB,Picornaviridae,Picornavirales,138949,5600,n,fecal-oral,Human,symptomatic,acute
+Enterovirus C,EVC,Picornaviridae,Picornavirales,138950,6000,y,fecal-oral,Human,symptomatic,acute
+Enterovirus D,EVD,Picornaviridae,Picornavirales,138951,5500,n,fecal-oral,Human,symptomatic,acute
+Influenza A virus H3N2,H3N2,Orthomyxoviridae,Articulavirales,41857,1600-1800**,y,aerosolic,Human,symptomatic,acute
+Hepacivirus C,HCV,Flaviviridae,Amarillovirales,11103,8500,n,blood/ sexual,Human,DAA,chronic
+Hepatitis delta virus,HDV,Kolmioviridae,,12475,1200,y,blood/ sexual,Human,IFN,chronic
+Human Metapneumovirus,HMPV,Pneumoviridae,Mononegavirales,162145,11000,n,aerosolic,Human,symptomatic,acute
+Human orthopneumovirus ,HRSV,Pneumoviridae,Mononegavirales,11250,12000,n,aerosolic,Human,symptomatic,acute
+Human respirovirus 3,HRV3,Paramyxoviridae,Mononegavirales,11216,12000,n,aerosolic,Human,symptomatic,acute
+Middle East respiratory syndrome-related coronavirus,MERS,Coronaviridae,Nidovirales,1335626,27000,n,aerosolic,Human/ zoonotic,symptomatic,acute
+Measles morbillivirus ,MMV,Paramyxoviridae,Mononegavirales,11234,15500,y,aerosolic,Human,symptomatic,acute
+Mumps orthorubulavirus,MRV,Paramyxoviridae,Mononegavirales,2560602,12000,y,aerosolic,Human,symptomatic,acute
+Norwalk virus,Norwalk,Caliciviridae,Picornavirales,11983,5500,n,fecal-oral,Human,symptomatic,acute
+Orthohepevirus A,OHVA,Hepeviridae,Hepelivirales,1678143,4700,p,fecal-oral,Human/ zoonotic,symptomatic,acute
+Parechovirus A,PeVA,Picornaviridae,Picornavirales,1803956,5500,n,aerosolic,Human,symptomatic,acute
+Rhinovirus A,RVA,Picornaviridae,Picornavirales,147711,5600,n,aerosolic,Human,symptomatic,acute
+Severe acute respiratory syndrome coronavirus 2,SARS2,Coronaviridae,Nidovirales,2697049,,y,aerosolic,Human,symptomatic,acute
+Sapporo virus,SV,Caliciviridae,Picornavirales,95342,5500,n,fecal-oral,Human,symptomatic,acute
+Tick-borne encephalitis virus?,TBEV,Flaviviridae,Amarillovirales,11084,9500,p,vector,Zoonotic,symptomatic,acute
+West Nile virus ,WNV,Flaviviridae,Amarillovirales,11082,8500,n,vector,Zoonotic,symptomatic,acute
+Yellow fever virus,YFV,Flaviviridae,Amarillovirales,11089,8500,y,vector,Human/ zoonotic,symptomatic,acute
+Zika virus,ZIKV,Flaviviridae,Amarillovirales,64320,8500,n,vector,Human/ zoonotic,symptomatic,acute
