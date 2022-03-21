@@ -1,5 +1,5 @@
 ---
-title: "Biol 432 Group project-Question 1"
+title: "Biol 432 Group project-Question 2"
 author: "Chenyang Wu"
 date: "2022/3/21"
 output: pdf_document
@@ -9,14 +9,14 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
 ## Project Info
 #### **Group name**: Teambits
 #### **Date**: 2022/3/21
 #### **GitHub Link**: https://github.com/carolinetang77/BIOL432-group1
 
 
-
-### Research question: Are mutation rates correlated with transmission method? do certain transmission methods have higher mutation rates?
+### Research question: Is the mutation rate correlated with GC content?
 
 #### Load the packages we will need
 
@@ -27,14 +27,9 @@ library(dplyr) # Just for example, might not use it
 #### Input the data
 
 ```{r}
-Table1 <- read.csv("./InputData/TableS1.csv")
-Table9 <- read.csv("./InputData/TableS9.csv")
+readLines("./InputData/TableS11.dat", n = 10)
 
-readLines("./InputData/TableS8.dat", n = 10)
-
-Table8 <- read.table("./InputData/TableS8.dat", header = TRUE) 
+Table11 <- read.table("./InputData/TableS11.dat", header = TRUE, skip = 4) # Have some error with this now...
 ```
-
-
 
 
