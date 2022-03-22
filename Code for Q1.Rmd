@@ -32,7 +32,7 @@ Table9 <- read.csv("./InputData/TableS9.csv")
 
 readLines("./InputData/TableS8.dat", n = 10)
 
-Table8 <- read.table("./InputData/TableS8.dat", header = TRUE) 
+Table8 <- read.table("./InputData/TableS8.dat", header = F) 
 ```
 
 
