@@ -36,5 +36,12 @@ Table8 <- read.table("./InputData/TableS8.dat", header = TRUE)
 ```
 
 
+```{r}
+# Check how many types of virus in table S9
+table(Table9$virus)
+```
 
+```{r}
+list(Table1$Abbreviation)
+```
 
