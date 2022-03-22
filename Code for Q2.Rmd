@@ -27,9 +27,8 @@ library(dplyr) # Just for example, might not use it
 #### Input the data
 
 ```{r}
-readLines("./InputData/TableS11.dat", n = 10)
+Table11 <- read.csv("./InputData/TableS11.csv")
 
-Table11 <- read.table("./InputData/TableS11.dat", header = TRUE, skip = 4) # Have some error with this now...
 ```
 
 
