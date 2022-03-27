@@ -21,27 +21,126 @@ knitr::opts_chunk$set(echo = TRUE)
 #### Load the packages we will need
 
 ```{r}
-library(dplyr) # Just for example, might not use it
+library(dplyr) 
+library(ggplot2)
 ```
 
 #### Input the data
-
 ```{r}
 Table1 <- read.csv("./InputData/TableS1.csv")
 Table9 <- read.csv("./InputData/TableS9.csv")
 
 readLines("./InputData/TableS8.dat", n = 10)
 
-Table8 <- read.table("./InputData/TableS8.dat", header = F) 
+Table8 <- read.table("./InputData/TableS8_edited.dat", header = F) 
 ```
 
 
 ```{r}
 # Check how many types of virus in table S9
 table(Table9$virus)
+
+# table(Table9$tree)
 ```
 
 ```{r}
 list(Table1$Abbreviation)
+list(Table1$Transmission)
+```
+
+
+#### Combine the relevant columns into 1 table
+```{r}
+# Label the transmission type to the dataset
+TransData <- Table9 %>% 
+  mutate(Transmission_Type = recode(virus, 
+                                    "BCoV1" = "aerosolic", 
+                                    "CHIKV" = "vector", 
+                                    "DENV" = "vector", 
+                                    "Ebola" = "body_fluids", 
+                                    "EVA" = "fecal-oral", 
+                                    "EVB" = "fecal-oral", 
+                                    "EVC" = "fecal-oral",
+                                    "EVCr" = "fecal-oral",
+                                    "EVD" = "fecal-oral", 
+                                    "H3N2" = "aerosolic", 
+                                    "HCV" = "blood/sexual",
+                                    "HCVr" = "blood/sexual",
+                                    "HDV" = "blood/sexual",
+                                    "HMPV" = "aerosolic", 
+                                    "HRSV" = "aerosolic", 
+                                    "HRV3" = "aerosolic", 
+                                    "MERS" = "aerosolic",
+                                    "MMV" = "aerosolic", 
+                                    "MRV" = "aerosolic",
+                                    "Norwalk" = "fecal-oral",
+                                    "OHVA" = "fecal-oral", 
+                                    "PeVA" = "aerosolic",
+                                    "RVA" = "aerosolic",
+                                    "SARS2" = "aerosolic",   
+                                    "SV" = "fecal-oral",
+                                    "TBEV" = "vector",
+                                    "WNV" = "vector", 
+                                    "YFV" = "vector",
+                                    "ZIKV" = "vector")) 
+```
+
+
+```{r}
+# 
+ggplot(TransData, aes(x = Transmission_Type, 
+                      y = meandNdS, 
+                      na.rm = TRUE, 
+                      fill = Transmission_Type)) + 
+  geom_boxplot(alpha = 0.8) +
+  theme_bw() + 
+  scale_fill_brewer(palette = "Set2") + 
+  labs(x = "Transmission Types", y = "Mean dNdS") + 
+  ggtitle("Boxplot of MeandNdS among different Transmission Types") 
+```
+
+```{r}
+TransRate <- Table8 %>% 
+  mutate(Transmission_Type = recode(V1, 
+                                    "BCoV1" = "aerosolic", 
+                                    "CHIKV" = "vector", 
+                                    "DENV" = "vector", 
+                                    "Ebola" = "body_fluids", 
+                                    "EVA" = "fecal-oral", 
+                                    "EVB" = "fecal-oral", 
+                                    "EVC" = "fecal-oral",
+                                    "EVCr" = "fecal-oral",
+                                    "EVD" = "fecal-oral", 
+                                    "H3N2" = "aerosolic", 
+                                    "HCV" = "blood/sexual",
+                                    "HCVr" = "blood/sexual",
+                                    "HDV" = "blood/sexual",
+                                    "HMPV" = "aerosolic", 
+                                    "HRSV" = "aerosolic", 
+                                    "HRV3" = "aerosolic", 
+                                    "MERS" = "aerosolic",
+                                    "MMV" = "aerosolic", 
+                                    "MRV" = "aerosolic",
+                                    "Norwalk" = "fecal-oral",
+                                    "OHVA" = "fecal-oral", 
+                                    "PeVA" = "aerosolic",
+                                    "RVA" = "aerosolic",
+                                    "SARS2" = "aerosolic",   
+                                    "SV" = "fecal-oral",
+                                    "TBEV" = "vector",
+                                    "WNV" = "vector", 
+                                    "YFV" = "vector",
+                                    "ZIKV" = "vector")) 
+
+
+ggplot(TransRate, aes(x = Transmission_Type, 
+                      y = V2, 
+                      na.rm = TRUE, 
+                      fill = Transmission_Type)) + 
+  geom_boxplot(alpha = 0.8) +
+  theme_bw() + 
+  scale_fill_brewer(palette = "Set2") + 
+  labs(x = "Transmission Types", y = "Mutation Rate") + 
+  ggtitle("Boxplot of MeandNdS among different Transmission Types") 
 ```
 
