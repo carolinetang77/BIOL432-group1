@@ -23,6 +23,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(dplyr) 
 library(ggplot2)
+library(rentrez)
 ```
 
 #### Input the data
@@ -142,5 +143,6 @@ ggplot(TransRate, aes(x = Transmission_Type,
   scale_fill_brewer(palette = "Set2") + 
   labs(x = "Transmission Types", y = "Mutation Rate") + 
   ggtitle("Boxplot of MeandNdS among different Transmission Types") 
+
 ```
 
