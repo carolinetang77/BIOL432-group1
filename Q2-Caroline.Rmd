@@ -1,0 +1,56 @@
+---
+title: "Question 2 draft"
+output: html_document
+---
+## relevant libraries
+```{r load}
+library(tidyverse)
+library(rentrez)
+library(genbankr)
+library(Biostrings)
+library(annotate)
+library(muscle)
+library(ape)
+```
+
+## load in/format data on accession sequences
+covid sequences have different IDs from other viruses, not based on genbank accession number so we have to fix that
+```{r cars}
+#load the virus table and the COVID sequence acknowledgement table
+virus <- read.csv("InputData/TableS11.csv")
+covid <- read.delim("InputData/TableS3_GISAID_acknowledgements.dat")
+
+#check formatting
+head(virus)
+head(covid)
+
+#merge the COVID rows in the virus table with the acknowledgement table
+covidMerged <- merge(virus[virus$virus == "SARS2",], covid, by.x = "ID", by.y = "internID")
+
+#filter for only rows with GenBank accession IDs
+covidfilter <- covidMerged %>% filter(genbank_accession != "?") 
+
+#replace the alldb ID with the accession ID
+covidfilter$ID <- covidfilter$genbank_accession
+
+#select only the columns from the original virus table and rename them
+covidfilter <- covidfilter %>% dplyr::select(1:12)
+names(covidfilter) <- names(virus)
+
+#replace the original covid rows with the ones we just made
+finalvirus <- bind_rows(virus[virus$virus != "SARS2",], covidfilter)
+```
+
+## Subset sequences (10 per virus)
+```{r}
+set.seed(1)
+virusSubset <- finalvirus %>% group_by(virus) %>% slice_sample(n = 10)
+
+```
+
+## Get sequences from genbank
+```{r}
+virusID <- GBAccession(virusSubset$ID)
+virusID
+virusGBK <- read.GenBank(virusID, as.character = TRUE)
+```
