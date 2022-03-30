@@ -20,9 +20,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #### Load the packages we will need
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(dplyr) 
 library(ggplot2)
+library(BiocManager)
+library(genbankr)
 library(rentrez)
 ```
 
@@ -32,8 +34,9 @@ Table1 <- read.csv("./InputData/TableS1.csv")
 Table9 <- read.csv("./InputData/TableS9.csv")
 
 readLines("./InputData/TableS8.dat", n = 10)
-
 Table8 <- read.table("./InputData/TableS8_edited.dat", header = F) 
+
+Table11 <- read.csv("./InputData/TableS11.csv")
 ```
 
 
@@ -45,6 +48,7 @@ table(Table9$virus)
 ```
 
 ```{r}
+# Check the corresponding transmission type to the abbreviation
 list(Table1$Abbreviation)
 list(Table1$Transmission)
 ```
@@ -53,7 +57,7 @@ list(Table1$Transmission)
 #### Combine the relevant columns into 1 table
 ```{r}
 # Label the transmission type to the dataset
-TransData <- Table9 %>% 
+dNdSData <- Table9 %>% 
   mutate(Transmission_Type = recode(virus, 
                                     "BCoV1" = "aerosolic", 
                                     "CHIKV" = "vector", 
@@ -84,12 +88,9 @@ TransData <- Table9 %>%
                                     "WNV" = "vector", 
                                     "YFV" = "vector",
                                     "ZIKV" = "vector")) 
-```
 
-
-```{r}
 # 
-ggplot(TransData, aes(x = Transmission_Type, 
+ggplot(dNdSData, aes(x = Transmission_Type, 
                       y = meandNdS, 
                       na.rm = TRUE, 
                       fill = Transmission_Type)) + 
@@ -101,7 +102,7 @@ ggplot(TransData, aes(x = Transmission_Type,
 ```
 
 ```{r}
-TransRate <- Table8 %>% 
+MutaRate <- Table8 %>% 
   mutate(Transmission_Type = recode(V1, 
                                     "BCoV1" = "aerosolic", 
                                     "CHIKV" = "vector", 
@@ -134,7 +135,7 @@ TransRate <- Table8 %>%
                                     "ZIKV" = "vector")) 
 
 
-ggplot(TransRate, aes(x = Transmission_Type, 
+ggplot(MutaRate, aes(x = Transmission_Type, 
                       y = V2, 
                       na.rm = TRUE, 
                       fill = Transmission_Type)) + 
@@ -145,4 +146,67 @@ ggplot(TransRate, aes(x = Transmission_Type,
   ggtitle("Boxplot of MeandNdS among different Transmission Types") 
 
 ```
+
+
+```{r}
+table(Table11$virus)
+```
+
+
+```{r}
+# Random pick 10 IDs for each virus
+set.seed(1)
+IDs <- Table11 %>%
+  group_by(virus) %>%
+  sample_n(10)
+```
+
+```{r}
+# Double check if the code correctly pick 10 IDs from each virus
+table(IDs$virus)
+
+# Create the id list
+ncbi_ids <- IDs$ID 
+
+```
+
+```{r, echo = F}
+#
+Q1ID <- GBAccession(ncbi_ids)
+Q1ID
+class(Q1ID)
+Q1Gbk <- readGenBank(Q1ID)
+
+```
+
+```{r}
+# Search the sequence info from ncbi
+Q1Vir <- entrez_fetch(db = "nuccore", id = ncbi_ids, rettype = "fasta") 
+Q1Seq <- strsplit(Q1Vir, split = "\n\n", fixed = T)
+Q1Seq <- unlist(Q1Seq)
+
+header <- gsub("(^>.*genome|*cds|*sequence|*SEQUENCES|*RNA)\\n[ATCG].*", "\\1", Q1Seq)
+
+seq <- gsub("^>.*genome\\n([ATCG].*)", "\\1", Q1Seq)
+seq <- gsub("^>.*cds\\n([ATCG].*)", "\\1", seq)
+seq <- gsub("^>.*sequence\\n([ATCG].*)", "\\1", seq)
+seq <- gsub("^>.*SEQUENCES\\n([ATCG].*)", "\\1", seq)
+seq <- gsub("^>.*RNA\\n([ATCG].*)", "\\1", seq)
+
+Q1SeqTable <- data.frame(Name = header, Sequence = seq)
+Q1SeqTable$Sequence <- gsub("\n", "", Q1SeqTable$Sequence)
+
+# There are several lines have different ending words, so we will output the data set and adjust it manually.
+write.csv(Q1SeqTable, "./InputData/Q1Seq.csv", row.names = F)
+```
+
+```{r}
+# Input the edited data
+Q1Sequence <- read.csv("./InputData/Q1Seq.csv")
+
+
+```
+
+
+
 
