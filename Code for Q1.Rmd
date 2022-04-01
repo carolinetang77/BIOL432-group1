@@ -15,11 +15,9 @@ knitr::opts_chunk$set(echo = TRUE)
 #### **GitHub Link**: https://github.com/carolinetang77/BIOL432-group1
 
 
+## **Research question**: Are mutation rates correlated with transmission method? Do certain transmission methods have higher mutation rates?
 
-### Research question: Are mutation rates correlated with transmission method? do certain transmission methods have higher mutation rates?
-
-#### Load the packages we will need
-
+### Load the packages we will need
 ```{r message=FALSE, warning=FALSE}
 library(dplyr) 
 library(ggplot2)
@@ -32,7 +30,7 @@ library(reshape2)
 library(ggtree)
 ```
 
-#### Input the data
+### Input the data
 ```{r}
 Table1 <- read.csv("./InputData/TableS1.csv")
 Table9 <- read.csv("./InputData/TableS9.csv")
@@ -43,7 +41,6 @@ Table8 <- read.table("./InputData/TableS8_edited.dat", header = F)
 Table11 <- read.csv("./InputData/TableS11.csv")
 ```
 
-
 ```{r}
 # Check how many types of virus in table S9
 table(Table9$virus)
@@ -53,8 +50,7 @@ list(Table1$Abbreviation)
 list(Table1$Transmission)
 ```
 
-
-#### Combine the relevant columns into 1 dataframe
+### Combine the relevant columns into 1 dataframe
 ```{r}
 # Label the transmission type to the dataset
 dNdSData <- Table9 %>% 
@@ -89,10 +85,9 @@ dNdSData <- Table9 %>%
                                     "YFV" = "vector",
                                     "ZIKV" = "vector")) 
 
-# Draw a boxplot for mean dNdS data with different transmission types
-ggplot(dNdSData, aes(x = Transmission_Type, 
-                     y = meandNdS, na.rm = TRUE, 
-                     fill = Transmission_Type)) + 
+# Draw a box plot for mean dNdS data with different transmission types
+ggplot(dNdSData, aes(x = Transmission_Type, y = meandNdS, 
+                     na.rm = TRUE, fill = Transmission_Type)) + 
   geom_boxplot(alpha = 0.8) +
   theme_bw() + 
   scale_fill_brewer(palette = "Set2") + 
@@ -135,7 +130,7 @@ MutaRate <- Table8 %>%
                                     "YFV" = "vector",
                                     "ZIKV" = "vector")) 
 
-# Draw a boxplot for the mutation rate under different transmission types
+# Draw a box plot for the mutation rate under different transmission types
 ggplot(MutaRate, aes(x = Transmission_Type, 
                      y = V2, na.rm = TRUE, 
                      fill = Transmission_Type)) + 
@@ -166,16 +161,16 @@ table(IDs$virus)
 
 # Create the id list
 ncbi_ids <- IDs$ID 
-
 ```
 
 
 ```{r}
-# Search the sequence info from ncbi
+# Search the sequence info from NCBI
 Q1Vir <- entrez_fetch(db = "nuccore", id = ncbi_ids, rettype = "fasta") 
 Q1Seq <- strsplit(Q1Vir, split = "\n\n", fixed = T)
 Q1Seq <- unlist(Q1Seq)
 
+# Use regular expression to edit the search result
 header <- gsub("(^>.*genome|*cds|*sequence|*SEQUENCES|*RNA)\\n[ATCG].*", "\\1", Q1Seq)
 
 seq <- gsub("^>.*genome\\n([ATCG].*)", "\\1", Q1Seq)
@@ -197,12 +192,14 @@ Q1Sequence <- read.csv("./InputData/Q1Seq_edited.csv")
 
 # Since there are ten IDs from SARS2 don't have search result from NCBI, We decided to drop those ten lines
 ID260 <- IDs[!(IDs$virus == "SARS2"), ]
+```
 
-# Multiple Alignments
+### Multiple Alignments
+```{r}
 Q1DF <- data.frame(ID = ID260$ID,
-                    Virus = ID260$virus, 
-                    Seq = Q1Sequence$Sequence, 
-                    stringsAsFactors = FALSE)
+                   Virus = ID260$virus, 
+                   Seq = Q1Sequence$Sequence, 
+                   stringsAsFactors = FALSE)
 
 Q1DF <- Q1DF %>% 
   mutate(Transmission_Type = recode(Virus, 
@@ -242,19 +239,13 @@ VirString <- Q1DF$Seq %>%
   lapply(., paste0, collapse = "") %>% 
   unlist %>% 
   DNAStringSet 
-```
 
-
-```{r}
 # Give each sequence a unique names
 names(VirString) <- paste(1:nrow(Q1DF), Q1DF$ID, sep = "_")
 
 # Use MUSCLE to align the sequences
 VirAlign <- muscle::muscle(stringset = VirString, quiet = T)
-```
 
-
-```{r}
 # Convert our DNA Multiple Alignment object to a DNA Bin object
 VirAlignBin <- as.DNAbin(VirAlign)
 ```
@@ -269,7 +260,7 @@ qplot(SeqLen) + theme_bw()
 #### **Fig.3** Distribution of sequence length of the selected IDs.
 
 
-### Visualizing the distance matrix
+### Visualize the distance matrix
 ```{r fig.height=15, fig.width=20}
 VirDM <- dist.dna(VirAlignBin, model = "K80")
 VirDMmat <- as.matrix(VirDM)
@@ -285,13 +276,14 @@ ggplot(data = VirPDat, aes(x = Var1, y = Var2, fill = value)) +
 #### **Fig.4** Figure of the distance matrix.
 
 
+### Create the phlogeny tree
 ```{r}
 VirTree <- nj(VirDM)
 
 # Edit the tip label of the tree to better group the sequence by transmission types
 VirTree$tip.label <- paste(rownames(Q1DF5), Q1DF5$Transmission_Type)
 TransType <- split(VirTree$tip.label, Q1DF5$Transmission_Type)
-TransTree<-groupOTU(VirTree, TransType)
+TransTree <- groupOTU(VirTree, TransType)
 ```
 
 ```{r fig.height=8, fig.width=10}
@@ -299,11 +291,12 @@ ggtree(TransTree, branch.length = 'none', layout = "circular", aes(colour = grou
   geom_tiplab(size = 2, aes(angle = angle)) + 
   theme_bw()
 ```
+
 #### **Fig.5** Phylogenetic tree of the 130 selected sequences without consider the branch length.
 
 
+### Output the phylogeny tree
 ```{r}
 write.tree(TransTree, "./Output/Transmission_Type_Tree.tre")
 ```
-
 
