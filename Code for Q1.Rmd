@@ -26,6 +26,10 @@ library(ggplot2)
 library(BiocManager)
 library(genbankr)
 library(rentrez)
+library(muscle)
+library(ape)
+library(reshape2)
+library(ggtree)
 ```
 
 #### Input the data
@@ -33,7 +37,7 @@ library(rentrez)
 Table1 <- read.csv("./InputData/TableS1.csv")
 Table9 <- read.csv("./InputData/TableS9.csv")
 
-readLines("./InputData/TableS8.dat", n = 10)
+readLines("./InputData/TableS8.dat", n = 10) # Take a look at the .dat file
 Table8 <- read.table("./InputData/TableS8_edited.dat", header = F) 
 
 Table11 <- read.csv("./InputData/TableS11.csv")
@@ -44,17 +48,13 @@ Table11 <- read.csv("./InputData/TableS11.csv")
 # Check how many types of virus in table S9
 table(Table9$virus)
 
-# table(Table9$tree)
-```
-
-```{r}
-# Check the corresponding transmission type to the abbreviation
+# Check the corresponding transmission type to the abbreviation in table S1
 list(Table1$Abbreviation)
 list(Table1$Transmission)
 ```
 
 
-#### Combine the relevant columns into 1 table
+#### Combine the relevant columns into 1 dataframe
 ```{r}
 # Label the transmission type to the dataset
 dNdSData <- Table9 %>% 
@@ -89,17 +89,18 @@ dNdSData <- Table9 %>%
                                     "YFV" = "vector",
                                     "ZIKV" = "vector")) 
 
-# 
+# Draw a boxplot for mean dNdS data with different transmission types
 ggplot(dNdSData, aes(x = Transmission_Type, 
-                      y = meandNdS, 
-                      na.rm = TRUE, 
-                      fill = Transmission_Type)) + 
+                     y = meandNdS, na.rm = TRUE, 
+                     fill = Transmission_Type)) + 
   geom_boxplot(alpha = 0.8) +
   theme_bw() + 
   scale_fill_brewer(palette = "Set2") + 
-  labs(x = "Transmission Types", y = "Mean dNdS") + 
-  ggtitle("Boxplot of MeandNdS among different Transmission Types") 
+  labs(x = "Transmission Types", y = "Mean dNdS")
 ```
+
+#### **Fig.1** Boxplot of mean dNdS values among different transmission types.
+
 
 ```{r}
 MutaRate <- Table8 %>% 
@@ -134,31 +135,29 @@ MutaRate <- Table8 %>%
                                     "YFV" = "vector",
                                     "ZIKV" = "vector")) 
 
-
+# Draw a boxplot for the mutation rate under different transmission types
 ggplot(MutaRate, aes(x = Transmission_Type, 
-                      y = V2, 
-                      na.rm = TRUE, 
-                      fill = Transmission_Type)) + 
+                     y = V2, na.rm = TRUE, 
+                     fill = Transmission_Type)) + 
   geom_boxplot(alpha = 0.8) +
   theme_bw() + 
   scale_fill_brewer(palette = "Set2") + 
-  labs(x = "Transmission Types", y = "Mutation Rate") + 
-  ggtitle("Boxplot of MeandNdS among different Transmission Types") 
-
+  labs(x = "Transmission Types", y = "Mutation Rate")
 ```
+
+#### **Fig.2** Boxplot of mutation rate among different Transmission Types 
 
 
 ```{r}
+# Check the number of IDs in table S11 for each virus
 table(Table11$virus)
-```
+# Since there are so many IDs, We decided to pick 5 IDs from each virus
 
-
-```{r}
-# Random pick 10 IDs for each virus
-set.seed(1)
+# Random pick 5 IDs for each virus
+set.seed(1) # Set seed to make sure the output are constant
 IDs <- Table11 %>%
   group_by(virus) %>%
-  sample_n(10)
+  sample_n(5)
 ```
 
 ```{r}
@@ -170,14 +169,6 @@ ncbi_ids <- IDs$ID
 
 ```
 
-```{r, echo = F}
-#
-Q1ID <- GBAccession(ncbi_ids)
-Q1ID
-class(Q1ID)
-Q1Gbk <- readGenBank(Q1ID)
-
-```
 
 ```{r}
 # Search the sequence info from ncbi
@@ -202,11 +193,117 @@ write.csv(Q1SeqTable, "./InputData/Q1Seq.csv", row.names = F)
 
 ```{r}
 # Input the edited data
-Q1Sequence <- read.csv("./InputData/Q1Seq.csv")
+Q1Sequence <- read.csv("./InputData/Q1Seq_edited.csv")
 
+# Since there are ten IDs from SARS2 don't have search result from NCBI, We decided to drop those ten lines
+ID260 <- IDs[!(IDs$virus == "SARS2"), ]
 
+# Multiple Alignments
+Q1DF <- data.frame(ID = ID260$ID,
+                    Virus = ID260$virus, 
+                    Seq = Q1Sequence$Sequence, 
+                    stringsAsFactors = FALSE)
+
+Q1DF <- Q1DF %>% 
+  mutate(Transmission_Type = recode(Virus, 
+                                    "BCoV1" = "aerosolic", 
+                                    "CHIKV" = "vector", 
+                                    "DENV" = "vector", 
+                                    "Ebola" = "body_fluids", 
+                                    "EVA" = "fecal-oral", 
+                                    "EVB" = "fecal-oral", 
+                                    "EVC" = "fecal-oral",
+                                    "EVCr" = "fecal-oral",
+                                    "EVD" = "fecal-oral", 
+                                    "H3N2" = "aerosolic", 
+                                    "HCV" = "blood/sexual",
+                                    "HCVr" = "blood/sexual",
+                                    "HDV" = "blood/sexual",
+                                    "HMPV" = "aerosolic", 
+                                    "HRSV" = "aerosolic", 
+                                    "HRV3" = "aerosolic", 
+                                    "MERS" = "aerosolic",
+                                    "MMV" = "aerosolic", 
+                                    "MRV" = "aerosolic",
+                                    "Norwalk" = "fecal-oral",
+                                    "OHVA" = "fecal-oral", 
+                                    "PeVA" = "aerosolic",
+                                    "RVA" = "aerosolic",
+                                    "SARS2" = "aerosolic",   
+                                    "SV" = "fecal-oral",
+                                    "TBEV" = "vector",
+                                    "WNV" = "vector", 
+                                    "YFV" = "vector",
+                                    "ZIKV" = "vector")) 
+
+# Convert DNASbin to DNAStringSet
+VirString <- Q1DF$Seq %>% 
+  as.character %>% 
+  lapply(., paste0, collapse = "") %>% 
+  unlist %>% 
+  DNAStringSet 
 ```
 
 
+```{r}
+# Give each sequence a unique names
+names(VirString) <- paste(1:nrow(Q1DF), Q1DF$ID, sep = "_")
+
+# Use MUSCLE to align the sequences
+VirAlign <- muscle::muscle(stringset = VirString, quiet = T)
+```
+
+
+```{r}
+# Convert our DNA Multiple Alignment object to a DNA Bin object
+VirAlignBin <- as.DNAbin(VirAlign)
+```
+
+
+```{r}
+SeqLen <- as.numeric(lapply(VirString, length))
+# Show the distribution of sequence length
+qplot(SeqLen) + theme_bw()
+```
+
+#### **Fig.3** Distribution of sequence length of the selected IDs.
+
+
+### Visualizing the distance matrix
+```{r fig.height=15, fig.width=20}
+VirDM <- dist.dna(VirAlignBin, model = "K80")
+VirDMmat <- as.matrix(VirDM)
+
+# Plot the distance matrix
+VirPDat <- melt(VirDMmat)
+ggplot(data = VirPDat, aes(x = Var1, y = Var2, fill = value)) + 
+  geom_tile() + 
+  scale_fill_gradientn(colours = c("white", "blue", "green", "red")) + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+#### **Fig.4** Figure of the distance matrix.
+
+
+```{r}
+VirTree <- nj(VirDM)
+
+# Edit the tip label of the tree to better group the sequence by transmission types
+VirTree$tip.label <- paste(rownames(Q1DF5), Q1DF5$Transmission_Type)
+TransType <- split(VirTree$tip.label, Q1DF5$Transmission_Type)
+TransTree<-groupOTU(VirTree, TransType)
+```
+
+```{r fig.height=8, fig.width=10}
+ggtree(TransTree, branch.length = 'none', layout = "circular", aes(colour = group)) + 
+  geom_tiplab(size = 2, aes(angle = angle)) + 
+  theme_bw()
+```
+#### **Fig.5** Phylogenetic tree of the 130 selected sequences without consider the branch length.
+
+
+```{r}
+write.tree(TransTree, "./Output/Transmission_Type_Tree.tre")
+```
 
 
