@@ -9,7 +9,6 @@ library(rentrez)
 library(genbankr)
 library(Biostrings)
 library(annotate)
-library(muscle)
 library(ape)
 ```
 
@@ -45,12 +44,43 @@ finalvirus <- bind_rows(virus[virus$virus != "SARS2",], covidfilter)
 ```{r}
 set.seed(1)
 virusSubset <- finalvirus %>% group_by(virus) %>% slice_sample(n = 10)
-
 ```
 
 ## Get sequences from genbank
 ```{r}
 virusID <- GBAccession(virusSubset$ID)
-virusID
 virusGBK <- read.GenBank(virusID, as.character = TRUE)
 ```
+
+## Calculate gc content of each sequence and merge with virus types
+```{r}
+gc <- vector(length = length(virusGBK))
+for (i in 1:length(virusGBK)) {
+  gc[i] <- length(grep("[gc]", unlist(virusGBK[[i]]))) / length(virusGBK[[i]])
+}
+gcContent <- data.frame(ID = names(virusGBK), gc = gc)
+virusSubset <- merge(virusSubset, gcContent, by = "ID")
+```
+
+## Scatterplot of GC content vs. mutation rate and transmission method
+```{r}
+#load transmission and mutation tables
+mutation <- read.delim("InputData/TableS8_edited.dat", header = F)
+names(mutation) <- c("virus", "rate", "year")
+transmission <- read.csv("InputData/TableS1.csv", header = T)
+
+#calculate mean mutation rate per virus and merge with GC content
+mutationMean <- mutation %>% group_by(virus) %>% summarise(meanRate = mean(rate, na.rm = T))
+virusSubset <- merge(virusSubset, mutationMean, by = "virus")
+
+#merge transmission data
+virusSubset <- merge(virusSubset, transmission, by.x = "virus", by.y = "Abbreviation")
+
+#create scatterplot
+ggplot(data = virusSubset, aes(x = gc, y = meanRate)) +
+  geom_point(aes(colour = Transmission)) +
+  theme_classic() +
+  geom_smooth(method = "lm") +
+  labs(x = "GC content", y = "Mean mutation rate")
+```
+
