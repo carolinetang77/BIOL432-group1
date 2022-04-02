@@ -281,8 +281,8 @@ ggplot(data = VirPDat, aes(x = Var1, y = Var2, fill = value)) +
 VirTree <- nj(VirDM)
 
 # Edit the tip label of the tree to better group the sequence by transmission types
-VirTree$tip.label <- paste(rownames(Q1DF5), Q1DF5$Transmission_Type)
-TransType <- split(VirTree$tip.label, Q1DF5$Transmission_Type)
+VirTree$tip.label <- paste(rownames(Q1DF), Q1DF$Transmission_Type)
+TransType <- split(VirTree$tip.label, Q1DF$Transmission_Type)
 TransTree <- groupOTU(VirTree, TransType)
 ```
 
