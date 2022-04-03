@@ -19,10 +19,6 @@ covid sequences have different IDs from other viruses, not based on genbank acce
 virus <- read.csv("InputData/TableS11.csv")
 covid <- read.delim("InputData/TableS3_GISAID_acknowledgements.dat")
 
-#check formatting
-head(virus)
-head(covid)
-
 #merge the COVID rows in the virus table with the acknowledgement table
 covidMerged <- merge(virus[virus$virus == "SARS2",], covid, by.x = "ID", by.y = "internID")
 
