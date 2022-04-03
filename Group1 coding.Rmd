@@ -1,8 +1,10 @@
 ---
 title: "Biol 432 Group project-Question 1"
-author: "Chenyang Wu"
+author: "Chenyang Wu", "Caroline Tang"
 date: "2022/3/21"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -14,8 +16,11 @@ knitr::opts_chunk$set(echo = TRUE)
 #### **Date**: 2022/3/21
 #### **GitHub Link**: https://github.com/carolinetang77/BIOL432-group1
 
+---
 
-## **Research question**: Are mutation rates correlated with transmission method? Do certain transmission methods have higher mutation rates?
+## **Research question 1**: Are mutation rates correlated with transmission method? Do certain transmission methods have higher mutation rates?
+
+#### Coding by Chenyang Wu
 
 ### Load the packages we will need
 ```{r message=FALSE, warning=FALSE}
@@ -143,14 +148,35 @@ ggplot(MutaRate, aes(x = Transmission_Type,
 #### **Fig.2** Boxplot of mutation rate among different Transmission Types 
 
 
+### # Adjust the sequence ID for SARS2
+```{r}
+# This chunk was done with the help of Caroline Tang
+Table3 <- read.delim("InputData/TableS3_GISAID_acknowledgements.dat")
+
+DataMerged <- merge(Table11[Table11$virus == "SARS2",], Table3, by.x = "ID", by.y = "internID")
+
+Datafilter <- DataMerged %>% 
+  filter(genbank_accession != "?") 
+
+Datafilter$ID <- Datafilter$genbank_accession
+
+Datafilter <- Datafilter %>% 
+  dplyr::select(1:12)
+
+names(Datafilter) <- names(Table11)
+
+finalIDs <- bind_rows(Table11[Table11$virus != "SARS2",], Datafilter)
+```
+
+
 ```{r}
 # Check the number of IDs in table S11 for each virus
-table(Table11$virus)
+table(finalIDs$virus)
 # Since there are so many IDs, We decided to pick 5 IDs from each virus
 
 # Random pick 5 IDs for each virus
 set.seed(1) # Set seed to make sure the output are constant
-IDs <- Table11 %>%
+IDs <- finalIDs %>%
   group_by(virus) %>%
   sample_n(5)
 ```
@@ -189,15 +215,12 @@ write.csv(Q1SeqTable, "./InputData/Q1Seq.csv", row.names = F)
 ```{r}
 # Input the edited data
 Q1Sequence <- read.csv("./InputData/Q1Seq_edited.csv")
-
-# Since there are ten IDs from SARS2 don't have search result from NCBI, We decided to drop those ten lines
-ID260 <- IDs[!(IDs$virus == "SARS2"), ]
 ```
 
 ### Multiple Alignments
 ```{r}
-Q1DF <- data.frame(ID = ID260$ID,
-                   Virus = ID260$virus, 
+Q1DF <- data.frame(ID = IDs$ID,
+                   Virus = IDs$virus, 
                    Seq = Q1Sequence$Sequence, 
                    stringsAsFactors = FALSE)
 
@@ -244,6 +267,7 @@ VirString <- Q1DF$Seq %>%
 names(VirString) <- paste(1:nrow(Q1DF), Q1DF$ID, sep = "_")
 
 # Use MUSCLE to align the sequences
+# This line will take about 1 hour for R to run it.
 VirAlign <- muscle::muscle(stringset = VirString, quiet = T)
 
 # Convert our DNA Multiple Alignment object to a DNA Bin object
@@ -292,7 +316,7 @@ ggtree(TransTree, branch.length = 'none', layout = "circular", aes(colour = grou
   theme_bw()
 ```
 
-#### **Fig.5** Phylogenetic tree of the 130 selected sequences without consider the branch length.
+#### **Fig.5** Phylogenetic tree of the 135 selected sequences without consider the branch length.
 
 
 ### Output the phylogeny tree
@@ -300,3 +324,99 @@ ggtree(TransTree, branch.length = 'none', layout = "circular", aes(colour = grou
 write.tree(TransTree, "./Output/Transmission_Type_Tree.tre")
 ```
 
+
+
+---
+## **Research question 2**: Is the mutation rate correlated with guanine-cytosine content?
+
+#### Coding By Caroline Tang
+
+### Relevant libraries
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(rentrez)
+library(genbankr)
+library(Biostrings)
+library(annotate)
+library(ape)
+```
+
+
+### Load in/format data on accession sequences
+#### covid sequences have different IDs from other viruses, not based on genbank accession number so we have to fix that
+```{r}
+# Load the virus table and the COVID sequence acknowledgement table
+virus <- read.csv("InputData/TableS11.csv")
+covid <- read.delim("InputData/TableS3_GISAID_acknowledgements.dat")
+
+# Merge the COVID rows in the virus table with the acknowledgement table
+covidMerged <- merge(virus[virus$virus == "SARS2", ], covid, by.x = "ID", by.y = "internID")
+
+# Filter for only rows with GenBank accession IDs
+covidfilter <- covidMerged %>% 
+  filter(genbank_accession != "?") 
+
+# Replace the alldb ID with the accession ID
+covidfilter$ID <- covidfilter$genbank_accession
+
+# Select only the columns from the original virus table and rename them
+covidfilter <- covidfilter %>% 
+  dplyr::select(1:12)
+names(covidfilter) <- names(virus)
+
+# Replace the original covid rows with the ones we just made
+finalvirus <- bind_rows(virus[virus$virus != "SARS2", ], covidfilter)
+```
+
+
+### Subset sequences (10 per virus)
+```{r}
+set.seed(1)
+virusSubset <- finalvirus %>% 
+  group_by(virus) %>% 
+  slice_sample(n = 10)
+```
+
+### Get sequences from genbank
+```{r}
+virusID <- GBAccession(virusSubset$ID)
+virusGBK <- read.GenBank(virusID, as.character = TRUE)
+```
+
+### Calculate gc content of each sequence and merge with virus types
+```{r}
+gc <- vector(length = length(virusGBK))
+for (i in 1:length(virusGBK)) {
+  gc[i] <- length(grep("[gc]", unlist(virusGBK[[i]]))) / length(virusGBK[[i]])
+}
+gcContent <- data.frame(ID = names(virusGBK), gc = gc)
+virusSubset <- merge(virusSubset, gcContent, by = "ID")
+```
+
+
+### Scatterplot of GC content vs. mutation rate and transmission method
+```{r}
+# Load transmission and mutation tables
+mutation <- read.delim("InputData/TableS8_edited.dat", header = F)
+names(mutation) <- c("virus", "rate", "year")
+transmission <- read.csv("InputData/TableS1.csv", header = T)
+
+# Calculate mean mutation rate per virus and merge with GC content
+mutationMean <- mutation %>% 
+  group_by(virus) %>% 
+  summarise(meanRate = mean(rate, na.rm = T))
+virusSubset <- merge(virusSubset, mutationMean, by = "virus")
+
+# Merge transmission data
+virusSubset <- merge(virusSubset, transmission, by.x = "virus", by.y = "Abbreviation")
+
+# Create scatter plot
+ggplot(data = virusSubset, aes(x = gc, y = meanRate)) +
+  geom_point(aes(colour = Transmission), alpha = 0.8) +
+  theme_classic() +
+  geom_smooth(method = "lm") +
+  scale_fill_brewer(palette = "Set2") +
+  labs(x = "GC content", y = "Mean mutation rate")
+```
+
+#### **Fig.6** Scatter plot of the 130 selected sequences without consider the branch length.
