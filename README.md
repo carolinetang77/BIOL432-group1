@@ -8,10 +8,13 @@ This project aims to investigate the following questions:
   Certain transmission methods may require more replication than others, increasing the chances of mutations. As a result, these viruses would have higher mutation rates, and would likely have greater differences between lineages.  
 ![Boxplots of transmission method vs mutation rate](https://github.com/carolinetang77/BIOL432-group1/raw/main/Predicted%20graphs/transmission-vs-mutation.png) 
 
-2. Is viral mutation rate correlated with guanine-cytosine content?
+2. Is viral mutation rate correlated with guanine-cytosine content?  
   GC content in DNA correlates positively with codon usage and expression efficiency, though this has not been investigated in RNA (Auewarakul, 2005). In addition, GC content in yeast is positively correlated with mutation and recombination rates, so this may also be the case in other microbial organisms such as viruses (Kiktev et al., 2018).
 ![Scatterplot of GC content vs mutation rate](https://github.com/carolinetang77/BIOL432-group1/raw/main/Predicted%20graphs/gc-vs-mutation.png)
   
+---
+Workflow
+
 ---
 Literature Cited
 Auewarakul, P. (2005). Composition bias and genome polarity of RNA viruses. Virus Research, 109(1), 33–37. https://doi.org/10.1016/j.virusres.2004.10.004 
