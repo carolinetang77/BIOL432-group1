@@ -34,6 +34,6 @@ dev.off()
 png("Predicted graphs/gc-vs-mutation.png", width = 5, height = 4, units = "in", res = 300)
 ggplot() +
   stat_function(fun = function(x){x * 0.01}) +
-  labs(x = "GC Content", y = "Mutation Rate") +
+  labs(x = "GC Content", y = "Mutation rate") +
   theme_bw()
 dev.off()
