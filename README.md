@@ -16,6 +16,6 @@ This project aims to investigate the following questions:
 Workflow
 
 ---
-Literature Cited
-Auewarakul, P. (2005). Composition bias and genome polarity of RNA viruses. Virus Research, 109(1), 33–37. https://doi.org/10.1016/j.virusres.2004.10.004 
+Literature Cited  
+Auewarakul, P. (2005). Composition bias and genome polarity of RNA viruses. Virus Research, 109(1), 33–37. https://doi.org/10.1016/j.virusres.2004.10.004   
 Kiktev, D. A., Sheng, Z., Lobachev, K. S., & Petes, T. D. (2018). GC content elevates mutation and recombination rates in the yeast saccharomyces cerevisiae. Proceedings of the National Academy of Sciences, 115(30). https://doi.org/10.1073/pnas.1807334115 
