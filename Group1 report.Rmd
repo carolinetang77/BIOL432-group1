@@ -337,6 +337,7 @@ ggtree(TransTree, branch.length = 'none', layout = "circular", aes(colour = grou
 write.tree(TransTree, "./Output/Transmission_Type_Tree.tre")
 ```
 
+
 Based on the boxplots, it appears that fecal-oral viruses have the highest mutation rates relative to other methods of transmission. However, they also have the lowest dN/dS rates, suggesting a trade-off between mutation rates and rates of non-synonymous mutations. Due to differences in viral genomes, when creating the tree, there were no common sequences found. As a result, the tree showed all sequences as equally distant from one another.
 
 ---
@@ -380,6 +381,7 @@ names(covidfilter) <- names(virus)
 # Replace the original covid rows with the ones we just made
 finalvirus <- bind_rows(virus[virus$virus != "SARS2", ], covidfilter)
 ```
+
 
 ### Subset sequences (10 per virus)
 ```{r}
