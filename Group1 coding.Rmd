@@ -1,8 +1,9 @@
 ---
 title: "Biol 432 Group project-Question 1"
-author: "Chenyang Wu", "Caroline Tang"
+author: "Chenyang Wu, Caroline Tang"
 date: "2022/3/21"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
 ---
@@ -182,7 +183,7 @@ IDs <- finalIDs %>%
 ```
 
 ```{r}
-# Double check if the code correctly pick 10 IDs from each virus
+# Double check if the code correctly pick 5 IDs from each virus
 table(IDs$virus)
 
 # Create the id list
@@ -324,14 +325,14 @@ ggtree(TransTree, branch.length = 'none', layout = "circular", aes(colour = grou
 write.tree(TransTree, "./Output/Transmission_Type_Tree.tre")
 ```
 
-
+Based on the boxplots, it appears that fecal-oral viruses have the highest mutation rates relative to other methods of transmission. However, they also have the lowest dN/dS rates, suggesting a trade-off between mutation rates and rates of non-synonymous mutations. Due to differences in viral genomes, when creating the tree, there were no common sequences found. As a result, the tree showed all sequences as equally distant from one another.
 
 ---
 ## **Research question 2**: Is the mutation rate correlated with guanine-cytosine content?
 
 #### Coding By Caroline Tang
 
-### Relevant libraries
+### Load libraries
 ```{r message=FALSE, warning=FALSE}
 library(tidyverse)
 library(rentrez)
@@ -343,7 +344,7 @@ library(ape)
 
 
 ### Load in/format data on accession sequences
-#### covid sequences have different IDs from other viruses, not based on genbank accession number so we have to fix that
+#### The COVID-19 sequences have different IDs from other viruses, not based on GenBank accession number so we have to replace them.
 ```{r}
 # Load the virus table and the COVID sequence acknowledgement table
 virus <- read.csv("InputData/TableS11.csv")
@@ -368,7 +369,6 @@ names(covidfilter) <- names(virus)
 finalvirus <- bind_rows(virus[virus$virus != "SARS2", ], covidfilter)
 ```
 
-
 ### Subset sequences (10 per virus)
 ```{r}
 set.seed(1)
@@ -377,13 +377,13 @@ virusSubset <- finalvirus %>%
   slice_sample(n = 10)
 ```
 
-### Get sequences from genbank
+### Get sequences from GenBank
 ```{r}
 virusID <- GBAccession(virusSubset$ID)
 virusGBK <- read.GenBank(virusID, as.character = TRUE)
 ```
 
-### Calculate gc content of each sequence and merge with virus types
+### Calculate GC content of each sequence and merge with virus types
 ```{r}
 gc <- vector(length = length(virusGBK))
 for (i in 1:length(virusGBK)) {
@@ -419,4 +419,6 @@ ggplot(data = virusSubset, aes(x = gc, y = meanRate)) +
   labs(x = "GC content", y = "Mean mutation rate")
 ```
 
-#### **Fig.6** Scatter plot of the 130 selected sequences without consider the branch length.
+#### **Fig.6** Scatter plot of the 130 selected sequences' GC content and mutation rates, colour coded by transmission type.  
+
+Based on the scatter plot, there is a slightly positive correlation between GC content and mutation rate, which supports the hypothesis that mutation rate increases with GC content. However, this trend varied among transmission methods, and the overall trend be skewed by the fecal-oral viruses with high mutation rates.
