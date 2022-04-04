@@ -280,7 +280,7 @@ VirString <- Q1DF$Seq %>%
 names(VirString) <- paste(1:nrow(Q1DF), Q1DF$ID, sep = "_")
 
 # Use MUSCLE to align the sequences
-# This line will take about 1 hour for R to run it.
+# This line will take more than 1 hour for R to run it.
 VirAlign <- muscle::muscle(stringset = VirString, diags = T, gapopen = -10)
 
 # Convert our DNA Multiple Alignment object to a DNA Bin object
