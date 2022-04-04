@@ -337,49 +337,12 @@ ggtree(TransTree, branch.length = 'none', layout = "circular", aes(colour = grou
 write.tree(TransTree, "./Output/Transmission_Type_Tree.tre")
 ```
 
-Based on the boxplots, it appears that fecal-oral viruses have the highest mutation rates relative to other methods of transmission. However, they also have the lowest dN/dS rates, suggesting a trade-off between mutation rates and rates of non-synonymous mutations. Due to differences in viral genomes, when creating the tree, there were no common sequences found. As a result, the tree showed all sequences as equally distant from one another.
+### Based on the boxplots, it appears that fecal-oral viruses have the highest mutation rates relative to other methods of transmission. However, they also have the lowest dN/dS rates, suggesting a trade-off between mutation rates and rates of non-synonymous mutations. Due to differences in viral genomes, when creating the tree, there were no common sequences found. As a result, the tree showed all sequences as equally distant from one another.
 
 ---
 ## **Research question 2**: Is the mutation rate correlated with guanine-cytosine content?
 
 #### Coding By Caroline Tang
-
-### Load libraries
-```{r message=FALSE, warning=FALSE}
-library(tidyverse)
-library(rentrez)
-library(genbankr)
-library(Biostrings)
-library(annotate)
-library(ape)
-```
-
-
-### Load in/format data on accession sequences
-#### The COVID-19 sequences have different IDs from other viruses, not based on GenBank accession number so we have to replace them.
-```{r}
-# Load the virus table and the COVID sequence acknowledgement table
-virus <- read.csv("InputData/TableS11.csv")
-covid <- read.delim("InputData/TableS3_GISAID_acknowledgements.dat")
-
-# Merge the COVID rows in the virus table with the acknowledgement table
-covidMerged <- merge(virus[virus$virus == "SARS2", ], covid, by.x = "ID", by.y = "internID")
-
-# Filter for only rows with GenBank accession IDs
-covidfilter <- covidMerged %>% 
-  filter(genbank_accession != "?") 
-
-# Replace the alldb ID with the accession ID
-covidfilter$ID <- covidfilter$genbank_accession
-
-# Select only the columns from the original virus table and rename them
-covidfilter <- covidfilter %>% 
-  dplyr::select(1:12)
-names(covidfilter) <- names(virus)
-
-# Replace the original covid rows with the ones we just made
-finalvirus <- bind_rows(virus[virus$virus != "SARS2", ], covidfilter)
-```
 
 ### Subset sequences (10 per virus)
 ```{r}
@@ -405,7 +368,6 @@ gcContent <- data.frame(ID = names(virusGBK), gc = gc)
 virusSubset <- merge(virusSubset, gcContent, by = "ID")
 ```
 
-
 ### Scatterplot of GC content vs. mutation rate and transmission method
 ```{r}
 # Calculate mean mutation rate per virus and merge with GC content
@@ -428,4 +390,4 @@ ggplot(data = virusSubset, aes(x = gc, y = meanRate)) +
 
 #### **Fig.6** Scatter plot of the 130 selected sequences' GC content and mutation rates, colour coded by transmission type.  
 
-Based on the scatter plot, there is a slightly positive correlation between GC content and mutation rate, which supports the hypothesis that mutation rate increases with GC content. However, this trend varied among transmission methods, and the overall trend be skewed by the fecal-oral viruses with high mutation rates.
+### Based on the scatter plot, there is a slightly positive correlation between GC content and mutation rate, which supports the hypothesis that mutation rate increases with GC content. However, this trend varied among transmission methods, and the overall trend be skewed by the fecal-oral viruses with high mutation rates.
