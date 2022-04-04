@@ -18,10 +18,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ---
 
-## **Research question 1**: Are mutation rates correlated with transmission method? Do certain transmission methods have higher mutation rates?
-
-#### Coding by Chenyang Wu
-
 ### Load the packages we will need
 ```{r message=FALSE, warning=FALSE}
 library(dplyr) 
@@ -33,6 +29,9 @@ library(muscle)
 library(ape)
 library(reshape2)
 library(ggtree)
+library(tidyverse)
+library(Biostrings)
+library(annotate)
 ```
 
 ### Input the data
@@ -42,9 +41,16 @@ Table9 <- read.csv("./InputData/TableS9.csv")
 
 readLines("./InputData/TableS8.dat", n = 10) # Take a look at the .dat file
 Table8 <- read.table("./InputData/TableS8_edited.dat", header = F) 
+names(Table8) <- c("virus", "rate", "year")
 
 Table11 <- read.csv("./InputData/TableS11.csv")
 ```
+
+---
+
+## **Research question 1**: Are mutation rates correlated with transmission method? Do certain transmission methods have higher mutation rates?
+
+#### Coding by Chenyang Wu
 
 ```{r}
 # Check how many types of virus in table S9
@@ -104,7 +110,7 @@ ggplot(dNdSData, aes(x = Transmission_Type, y = meandNdS,
 
 ```{r}
 MutaRate <- Table8 %>% 
-  mutate(Transmission_Type = recode(V1, 
+  mutate(Transmission_Type = recode(virus, 
                                     "BCoV1" = "aerosolic", 
                                     "CHIKV" = "vector", 
                                     "DENV" = "vector", 
@@ -137,7 +143,7 @@ MutaRate <- Table8 %>%
 
 # Draw a box plot for the mutation rate under different transmission types
 ggplot(MutaRate, aes(x = Transmission_Type, 
-                     y = V2, na.rm = TRUE, 
+                     y = rate, na.rm = TRUE, 
                      fill = Transmission_Type)) + 
   geom_boxplot(alpha = 0.8) +
   theme_bw() + 
@@ -148,23 +154,29 @@ ggplot(MutaRate, aes(x = Transmission_Type,
 #### **Fig.2** Boxplot of mutation rate among different Transmission Types 
 
 
-### # Adjust the sequence ID for SARS2
+### Adjust the sequence ID for SARS2
+#### Covid sequences have different IDs from other viruses, not based on genbank accession number so we have to fix that
+#### This chunk was done with the help of **Caroline Tang**
 ```{r}
-# This chunk was done with the help of Caroline Tang
+# Load the virus table and the COVID sequence acknowledgement table
 Table3 <- read.delim("InputData/TableS3_GISAID_acknowledgements.dat")
 
+# Merge the COVID rows in the virus table with the acknowledgement table
 DataMerged <- merge(Table11[Table11$virus == "SARS2",], Table3, by.x = "ID", by.y = "internID")
 
+# Filter for only rows with GenBank accession IDs
 Datafilter <- DataMerged %>% 
   filter(genbank_accession != "?") 
 
+# Replace the alldb ID with the accession ID
 Datafilter$ID <- Datafilter$genbank_accession
 
+# Select only the columns from the original virus table and rename them
 Datafilter <- Datafilter %>% 
   dplyr::select(1:12)
-
 names(Datafilter) <- names(Table11)
 
+# Replace the original covid rows with the ones we just made
 finalIDs <- bind_rows(Table11[Table11$virus != "SARS2",], Datafilter)
 ```
 
@@ -172,7 +184,7 @@ finalIDs <- bind_rows(Table11[Table11$virus != "SARS2",], Datafilter)
 ```{r}
 # Check the number of IDs in table S11 for each virus
 table(finalIDs$virus)
-# Since there are so many IDs, We decided to pick 5 IDs from each virus
+# Since there are so many IDs, We decided to pick 5 IDs from each virus for question 1
 
 # Random pick 5 IDs for each virus
 set.seed(1) # Set seed to make sure the output are constant
@@ -182,7 +194,7 @@ IDs <- finalIDs %>%
 ```
 
 ```{r}
-# Double check if the code correctly pick 10 IDs from each virus
+# Double check if the code correctly pick 5 IDs from each virus
 table(IDs$virus)
 
 # Create the id list
@@ -268,7 +280,7 @@ names(VirString) <- paste(1:nrow(Q1DF), Q1DF$ID, sep = "_")
 
 # Use MUSCLE to align the sequences
 # This line will take about 1 hour for R to run it.
-VirAlign <- muscle::muscle(stringset = VirString, quiet = T)
+VirAlign <- muscle::muscle(stringset = VirString, diags = T, gapopen = -10)
 
 # Convert our DNA Multiple Alignment object to a DNA Bin object
 VirAlignBin <- as.DNAbin(VirAlign)
@@ -325,54 +337,15 @@ write.tree(TransTree, "./Output/Transmission_Type_Tree.tre")
 ```
 
 
-
 ---
 ## **Research question 2**: Is the mutation rate correlated with guanine-cytosine content?
 
 #### Coding By Caroline Tang
 
-### Relevant libraries
-```{r message=FALSE, warning=FALSE}
-library(tidyverse)
-library(rentrez)
-library(genbankr)
-library(Biostrings)
-library(annotate)
-library(ape)
-```
-
-
-### Load in/format data on accession sequences
-#### covid sequences have different IDs from other viruses, not based on genbank accession number so we have to fix that
-```{r}
-# Load the virus table and the COVID sequence acknowledgement table
-virus <- read.csv("InputData/TableS11.csv")
-covid <- read.delim("InputData/TableS3_GISAID_acknowledgements.dat")
-
-# Merge the COVID rows in the virus table with the acknowledgement table
-covidMerged <- merge(virus[virus$virus == "SARS2", ], covid, by.x = "ID", by.y = "internID")
-
-# Filter for only rows with GenBank accession IDs
-covidfilter <- covidMerged %>% 
-  filter(genbank_accession != "?") 
-
-# Replace the alldb ID with the accession ID
-covidfilter$ID <- covidfilter$genbank_accession
-
-# Select only the columns from the original virus table and rename them
-covidfilter <- covidfilter %>% 
-  dplyr::select(1:12)
-names(covidfilter) <- names(virus)
-
-# Replace the original covid rows with the ones we just made
-finalvirus <- bind_rows(virus[virus$virus != "SARS2", ], covidfilter)
-```
-
-
 ### Subset sequences (10 per virus)
 ```{r}
 set.seed(1)
-virusSubset <- finalvirus %>% 
+virusSubset <- finalIDs %>% 
   group_by(virus) %>% 
   slice_sample(n = 10)
 ```
@@ -396,19 +369,14 @@ virusSubset <- merge(virusSubset, gcContent, by = "ID")
 
 ### Scatterplot of GC content vs. mutation rate and transmission method
 ```{r}
-# Load transmission and mutation tables
-mutation <- read.delim("InputData/TableS8_edited.dat", header = F)
-names(mutation) <- c("virus", "rate", "year")
-transmission <- read.csv("InputData/TableS1.csv", header = T)
-
 # Calculate mean mutation rate per virus and merge with GC content
-mutationMean <- mutation %>% 
+mutationMean <- Table8 %>% 
   group_by(virus) %>% 
   summarise(meanRate = mean(rate, na.rm = T))
 virusSubset <- merge(virusSubset, mutationMean, by = "virus")
 
 # Merge transmission data
-virusSubset <- merge(virusSubset, transmission, by.x = "virus", by.y = "Abbreviation")
+virusSubset <- merge(virusSubset, Table1, by.x = "virus", by.y = "Abbreviation")
 
 # Create scatter plot
 ggplot(data = virusSubset, aes(x = gc, y = meanRate)) +
